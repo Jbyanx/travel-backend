@@ -1,17 +1,47 @@
-# Travel Backend
+# Travel Backend - Sistema de Reservas de Vuelos
 
-Este proyecto es una API REST para la gestión de un sistema de reservas de vuelos, desarrollada con Spring Boot.
+## 1. Visión General
+Este servicio es una API REST diseñada para la gestión integral de reservas de vuelos. Permite administrar aerolíneas, aeropuertos, vuelos y escalas, proporcionando a los usuarios una plataforma segura para gestionar sus itinerarios de viaje.
 
-## Tecnologías
-- Java 17
-- Spring Boot 3.3.3 (Data JPA, Web, Security, Validation)
-- PostgreSQL
-- Docker
-- MapStruct & Lombok
-- JWT para autenticación
+El sistema utiliza una arquitectura monolítica basada en Spring Boot, con un enfoque en la integridad de los datos y seguridad de acceso.
 
-## Base de Datos
-Para ejecutar la base de datos localmente usando Docker:
+---
+
+## 2. Tecnologías y Stack Técnico
+| Componente | Detalle |
+| :--- | :--- |
+| **Framework** | Spring Boot 3.3.3 (Java 17) |
+| **Persistencia** | Spring Data JPA / Hibernate |
+| **Base de Datos** | PostgreSQL |
+| **Seguridad** | Spring Security + JWT (Json Web Token) |
+| **Mapeo** | MapStruct & Lombok |
+| **Contenedores** | Docker |
+
+---
+
+## 3. Seguridad y Control de Acceso (RBAC)
+El sistema implementa seguridad a nivel de método (`@PreAuthorize`) y autenticación basada en JWT, siguiendo el principio de mínimo privilegio.
+
+| Módulo | Endpoint | Funcionalidad | Roles Requeridos |
+| :--- | :--- | :--- | :--- |
+| **Auth** | `POST /auth/signup` | Registro de nuevos usuarios | Público |
+| **Auth** | `POST /auth/login` | Autenticación y obtención de Token | Público |
+| **Reservas** | `GET /reservas` | Listar todas las reservas | `ROLE_ADMIN` |
+| **Reservas** | `GET /reservas/misreservas` | Ver historial propio | `ROLE_USER` |
+| **Reservas** | `POST /reservas` | Crear nueva reserva | Autenticado |
+| **Vuelos** | `GET /vuelos` | Consultar disponibilidad | Público / Autenticado |
+
+---
+
+## 4. Configuración y Despliegue
+
+### Requisitos Previos
+- Docker y Docker Compose
+- Java 17+
+- Variable de entorno `JWT_SECRET_KEY` configurada
+
+### Base de Datos
+Ejecuta el contenedor de PostgreSQL con el siguiente comando:
 
 ```bash
 docker run --name postgres-pweb \
@@ -22,17 +52,20 @@ docker run --name postgres-pweb \
   -d postgres
 ```
 
-## Ejecución
-1. Asegúrate de tener Docker corriendo con la base de datos.
-2. Configura las credenciales en `application.properties` si es necesario.
-3. Asegúrate de configurar la variable de entorno `JWT_SECRET_KEY` para la seguridad.
-4. Ejecuta el proyecto con `./gradlew bootRun`.
+### Ejecución del Proyecto
+1. Clona el repositorio.
+2. Verifica la configuración en `src/main/resources/application.properties`.
+3. Inicia la aplicación:
+   ```bash
+   ./gradlew bootRun
+   ```
 
-## Orden Sugerido para Inserción de Datos
-Debido a las relaciones entre entidades, se recomienda este orden:
-1. **Aerolínea**: Independiente.
-2. **Aeropuerto**: Independiente.
-3. **Cliente**: Independiente.
-4. **Vuelo**: Requiere Aerolínea y Aeropuertos (origen y destino).
-5. **Escala**: Requiere Aeropuerto y Vuelo.
-6. **Reserva**: Requiere Cliente y Vuelo.
+---
+
+## 5. Guía de Inserción de Datos
+Para mantener la integridad referencial, se recomienda seguir este orden al poblar la base de datos:
+1. **Aerolíneas** y **Aeropuertos** (Independientes).
+2. **Clientes** (Usuarios del sistema).
+3. **Vuelos** (Requiere Aerolínea y Aeropuertos).
+4. **Escalas** (Requiere Vuelo y Aeropuerto).
+5. **Reservas** (Relación entre Cliente y Vuelo).
